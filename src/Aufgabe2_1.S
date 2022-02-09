@@ -14,11 +14,6 @@
 ;define a name for Register 16 and 17
 #define TEMP R16
 #define LED_COUNTER R17
-#define TICKER R18
-#define TICKER2 R19
-#define REGFULL r20
-#define TICKER3 r21
-#define IMM50 r22
 
 .section .text
 
@@ -29,18 +24,11 @@ main:
     ;Data Direction Register DDR for Port C as Output
     ser TEMP
     out	DDRC, TEMP
-
-    ldi REGFULL, 0x9c
-
     ;all LEDs off
     ser TEMP
     out PORTC, TEMP
 
     clr LED_COUNTER 
-
-
-
-    call wait_10ms
     ;endless loop
     _mloop:
         ;One’s Complement
@@ -52,40 +40,37 @@ main:
         ;increment LED_COUNTER
 	    inc LED_COUNTER
         call wait_500ms
-    
     rjmp _mloop
-
-;wait_10ms:
-;    	cpi r20,160000
-;        brne
 
 
 wait_10ms:
-    inc TICKER
-
-    brvs _overflow
-
-_compare:
-    cp TICKER2,REGFULL
-
-    brne wait_10ms
-
-    clr TICKER2
-ret
-
-
-_overflow:
-    inc TICKER2
-rjmp _compare
+    push R24
+    push R25
+    push R21
+    clr R24
+    clr R25
+    clr R21
+    ldi R21, 0x9c
+    _start_loop:
+        adiw R24, 0x1
+        cp R25, R21
+        brge _start_loop 
+    pop R21
+    pop R25
+    pop R24
+    ret
 
 wait_500ms:
     push r20
-    clr TICKER3
-    ldi IMM50, 0x32
+    push r21
+    clr r20
+    clr r21
+    ldi r20, 0x32
     loop_500:
         call wait_10ms
-        inc TICKER3
-        cp TICKER3, IMM50
+        inc r21
+        cp r21, r20
     brne loop_500
+    pop r21
     pop r20
 ret
