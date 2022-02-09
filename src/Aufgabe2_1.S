@@ -51,7 +51,7 @@ wait_10ms:
     clr R25
     clr R21
     
-    ldi R21, 0x9c
+    ldi R21, 0xd0;for 3 instructions
     _start_loop:
         adiw R24, 0x1
         cp R25, R21
@@ -74,7 +74,7 @@ wait_500ms:
         inc r21
         cp r21, r20
     brne loop_500
-    
+
     pop r21
     pop r20
 ret
