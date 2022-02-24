@@ -80,9 +80,6 @@ main:
     ldi TEMP, lo8(31250)
     sts OCR1AL, TEMP
 
-    ;interrupt stuff
-    ser TEMP
-    out EIMSK, TEMP;clear interrupts
 
     ldi TEMP, 0x02  ;falling edge on INT0 triggers interrupt
     sts EICRA, TEMP
