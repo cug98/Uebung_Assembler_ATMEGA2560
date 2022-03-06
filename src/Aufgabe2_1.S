@@ -1,17 +1,25 @@
 ;**************************************************************************
 ;Universitaet der Bundeswehr Muenchen
 ;02.12.2020 UN Version for VS-Code
-;2011       Klaus Buchenrieder Initial version
+;2011   Klaus Buchenrieder Initial version
+;   
+;Berechnung für wait_10ms:
+;   160.000 Takte = 10 ms
+;   10 Instruktionen in wait_10ms -> Zählen bis 16.000
+;   Binärdarstellung 16.000 -> 11111010000000
+;   Aufteilung von 16.000 auf Register R24 und R25
+;   R25 hält den höherwertigen Byte -> 11111010 also Dezimal 250     
 ;
-;your comment
-;
+; Abgabe von Übungsgruppe 1, Gruppe 9:
+; Maximilian Filzer, Matrikelnummer: 1196756
+; Christian Galda, Matrikelnummer: 1224466
 ;**************************************************************************
 /* The following is needed to subtract 0x20 from I/O addresses */ 
 #define __SFR_OFFSET 0 
 
 #include <avr/io.h>
 
-;define a name for Register 16 and 17
+;Definiere Register
 #define TEMP R16
 #define LED_COUNTER R17
 
@@ -21,29 +29,28 @@
 .global main
 main:
 
-    ;Data Direction Register DDR for Port C as Output
+    ;Vorbereitung für die LED-Steuerung
     ser TEMP
     out	DDRC, TEMP
-    ;all LEDs off
     ser TEMP
     out PORTC, TEMP
-
     clr LED_COUNTER 
-    ;endless loop
+
+    ;Endlosschleife
     _mloop:
-        ;One’s Complement
-    	com	LED_COUNTER			
-        ;set PORTC	
+        ;Schaltet LEDs um
+    	com	LED_COUNTER				
 	    out PORTC,LED_COUNTER
-        ;One’s Complement
 	    com LED_COUNTER
-        ;increment LED_COUNTER
 	    inc LED_COUNTER
+
+        ;Ruft die 500ms Vezögerung auf
         call wait_500ms
     rjmp _mloop
 
-
+;Alle 10 Takte Eins in R24 bzw. R25 hochzählen
 wait_10ms:
+    ;Register werden gespeichert und genullt
     push R24
     push R25
     push R21
@@ -51,30 +58,39 @@ wait_10ms:
     clr R25
     clr R21
     
-    ldi R21, 0xd0;for 3 instructions
+    ;250 Dezimal (0xFA) wird in R21 geladen 
+    ldi R21, 0xFA
+
+    ;Schleife läuft so lange bis 160.000 Takte erreicht wurden 
     _start_loop:
-        adiw R24, 0x1
+        adiw R24, 0x1 
         cp R25, R21
     brge _start_loop 
     
+    ;Register werden wiederhergestellt
     pop R21
     pop R25
     pop R24
-ret
+    ret
 
 wait_500ms:
+    ;Register werden gespeichert und genullt
     push r20
     push r21
     clr r20
     clr r21
 
-    ldi r20, 0x32
+    ;Wert 50 wird in R20 geladen
+    ldi r20, 0x32 
+
+    ;Schleife ruft 50-mal wait_10ms auf
     loop_500:
         call wait_10ms
         inc r21
         cp r21, r20
     brne loop_500
 
+    ;Register werden wiederhergestellt
     pop r21
     pop r20
-ret
+    ret
